@@ -1,0 +1,62 @@
+if(description){
+	script_oid( "1.3.6.1.4.1.25623.1.0.113368" );
+	script_version( "2020-05-08T08:34:44+0000" );
+	script_tag( name: "last_modification", value: "2020-05-08 08:34:44 +0000 (Fri, 08 May 2020)" );
+	script_tag( name: "creation_date", value: "2019-04-08 10:45:55 +0000 (Mon, 08 Apr 2019)" );
+	script_tag( name: "cvss_base", value: "10.0" );
+	script_tag( name: "cvss_base_vector", value: "AV:N/AC:L/Au:N/C:C/I:C/A:C" );
+	script_tag( name: "qod_type", value: "remote_vul" );
+	script_tag( name: "solution_type", value: "Mitigation" );
+	script_name( "HP LaserJet Printers Authentication Bypass Vulnerability" );
+	script_category( ACT_GATHER_INFO );
+	script_copyright( "Copyright (C) 2019 Greenbone Networks GmbH" );
+	script_family( "Web application abuses" );
+	script_dependencies( "gb_hp_printer_detect.sc" );
+	script_require_ports( "Services/www", 80 );
+	script_mandatory_keys( "hp_printer/installed" );
+	script_tag( name: "summary", value: "HP LaserJet Printers could allow a remote attacker to bypass security restrictions,
+  caused by missing authentication for critical function.
+  By sending a specially-crafted request, an attacker could exploit this vulnerability
+  to change configuration settings or gain administrative access." );
+	script_tag( name: "vuldetect", value: "Tries to access administrative settings." );
+	script_tag( name: "affected", value: "The following HP Printers are affected:
+
+  - LaserJet P4014
+
+  - LaserJet P4015
+
+  - LaserJet 5200" );
+	script_tag( name: "solution", value: "Set an administrator password under the /password.html URL." );
+	script_xref( name: "URL", value: "https://exchange.xforce.ibmcloud.com/vulnerabilities/158953" );
+	exit( 0 );
+}
+require("host_details.inc.sc");
+require("http_func.inc.sc");
+require("http_keepalive.inc.sc");
+cpe_list = make_list( "cpe:/h:hp:laserjet_p4014",
+	 "cpe:/h:hp:laserjet_p4015",
+	 "cpe:/h:hp:laserjet_5200",
+	 "cpe:/h:hp:laserjet_cp4520",
+	 "cpe:/h:hp:color_laserjet_cp4520",
+	 "cpe:/h:hp:laserjet_cp4025",
+	 "cpe:/h:hp:color_laserjet_cp4025",
+	 "cpe:/h:hp:laserjet_cp4020",
+	 "cpe:/h:hp:color_laserjet_cp4020",
+	 "cpe:/h:hp:laserjet_p3015",
+	 "cpe:/h:hp:laserjet_p3010" );
+if(isnull( result = get_app_port_from_list( cpe_list: cpe_list ) )){
+	exit( 0 );
+}
+port = result["port"];
+if(!get_app_location( cpe: result["cpe"], port: port )){
+	exit( 0 );
+}
+url = "/password.html";
+buf = http_get_cache( port: port, item: url );
+if(IsMatchRegexp( buf, "Use the fields below to set or change the Administrator Password" )){
+	report = http_report_vuln_url( port: port, url: url );
+	security_message( data: report, port: port );
+	exit( 0 );
+}
+exit( 99 );
+

@@ -1,0 +1,57 @@
+if(description){
+	script_oid( "1.3.6.1.4.1.25623.1.0.842262" );
+	script_version( "$Revision: 14140 $" );
+	script_tag( name: "last_modification", value: "$Date: 2019-03-13 13:26:09 +0100 (Wed, 13 Mar 2019) $" );
+	script_tag( name: "creation_date", value: "2015-06-26 06:25:12 +0200 (Fri, 26 Jun 2015)" );
+	script_cve_id( "CVE-2014-0227", "CVE-2014-0230", "CVE-2014-7810" );
+	script_tag( name: "cvss_base", value: "7.8" );
+	script_tag( name: "cvss_base_vector", value: "AV:N/AC:L/Au:N/C:N/I:N/A:C" );
+	script_tag( name: "qod_type", value: "package" );
+	script_name( "Ubuntu Update for tomcat6 USN-2655-1" );
+	script_tag( name: "summary", value: "The remote host is missing an update for the 'tomcat6'
+  package(s) announced via the referenced advisory." );
+	script_tag( name: "vuldetect", value: "Checks if a vulnerable version is present on the target host." );
+	script_tag( name: "insight", value: "It was discovered that Tomcat incorrectly
+handled data with malformed chunked transfer coding. A remote attacker could
+possibly use this issue to conduct HTTP request smuggling attacks, or cause
+Tomcat to consume resources, resulting in a denial of service. (CVE-2014-0227)
+
+It was discovered that Tomcat incorrectly handled HTTP responses occurring
+before the entire request body was finished being read. A remote attacker
+could possibly use this issue to cause memory consumption, resulting in a
+denial of service. (CVE-2014-0230)
+
+It was discovered that the Tomcat Expression Language (EL) implementation
+incorrectly handled accessible interfaces implemented by inaccessible
+classes. An attacker could possibly use this issue to bypass a
+SecurityManager protection mechanism. (CVE-2014-7810)" );
+	script_tag( name: "affected", value: "tomcat6 on Ubuntu 12.04 LTS" );
+	script_tag( name: "solution", value: "Please Install the Updated Packages." );
+	script_xref( name: "USN", value: "2655-1" );
+	script_xref( name: "URL", value: "http://www.ubuntu.com/usn/usn-2655-1/" );
+	script_tag( name: "solution_type", value: "VendorFix" );
+	script_category( ACT_GATHER_INFO );
+	script_copyright( "Copyright (C) 2015 Greenbone Networks GmbH" );
+	script_family( "Ubuntu Local Security Checks" );
+	script_dependencies( "gather-package-list.sc" );
+	script_mandatory_keys( "ssh/login/ubuntu_linux", "ssh/login/packages",  "ssh/login/release=UBUNTU12\\.04 LTS" );
+	exit( 0 );
+}
+require("revisions-lib.inc.sc");
+require("pkg-lib-deb.inc.sc");
+release = dpkg_get_ssh_release();
+if(!release){
+	exit( 0 );
+}
+res = "";
+if(release == "UBUNTU12.04 LTS"){
+	if(( res = isdpkgvuln( pkg: "libtomcat6-java", ver: "6.0.35-1ubuntu3.6", rls: "UBUNTU12.04 LTS" ) ) != NULL){
+		security_message( data: res );
+		exit( 0 );
+	}
+	if(__pkg_match){
+		exit( 99 );
+	}
+	exit( 0 );
+}
+

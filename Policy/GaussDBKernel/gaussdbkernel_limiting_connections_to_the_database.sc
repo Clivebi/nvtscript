@@ -1,0 +1,52 @@
+if(description){
+	script_oid( "1.3.6.1.4.1.25623.1.0.150408" );
+	script_version( "2020-12-22T08:52:03+0000" );
+	script_tag( name: "last_modification", value: "2020-12-22 08:52:03 +0000 (Tue, 22 Dec 2020)" );
+	script_tag( name: "creation_date", value: "2020-11-20 10:52:10 +0000 (Fri, 20 Nov 2020)" );
+	script_tag( name: "cvss_base", value: "0.0" );
+	script_tag( name: "cvss_base_vector", value: "AV:L/AC:H/Au:S/C:N/I:N/A:N" );
+	script_tag( name: "qod", value: "97" );
+	script_name( "GaussDB Kernel: Limiting Connections to the Database" );
+	script_category( ACT_GATHER_INFO );
+	script_copyright( "Copyright (C) 2020 Greenbone Networks GmbH" );
+	script_family( "Policy" );
+	script_dependencies( "compliance_tests.sc", "gb_huawei_gaussdb_kernel_ssh_login_detect.sc", "gaussdbkernel_authentication_information.sc" );
+	script_mandatory_keys( "huawei/gaussdb_kernel/detected", "Compliance/Launch" );
+	script_tag( name: "summary", value: "To control the number of sessions that access the database, the number of
+sessions connected to the database must be limited, preferably within 1024." );
+	exit( 0 );
+}
+require("policy_functions.inc.sc");
+require("ssh_func.inc.sc");
+cmd = "SELECT datconnlimit FROM pg_database WHERE datname='postgres';";
+title = "Limiting Connections to the Database";
+solution = "gsql -d postgres -p 8000 UPDATE pg_database SET datconnlimit=<CONN_LIMIT_VALUE> WHERE datname=<DATABASE_NAME> ;";
+default = "1000";
+test_type = "SQL_Query";
+if( !get_kb_item( "login/SSH/success" ) || !sock = ssh_login_or_reuse_connection() ){
+	compliant = "incomplete";
+	value = "error";
+	comment = "No SSH connection to host";
+}
+else {
+	if( !value = policy_gsql_cmd( socket: sock, query: cmd, db_type: "gaussdbkernel" ) ){
+		compliant = "incomplete";
+		value = "Error";
+		comment = "Can not detect setting";
+	}
+	else {
+		if( IsMatchRegexp( value, "failed to connect" ) ){
+			compliant = "incomplete";
+			value = "error";
+			comment = "No connection to database";
+		}
+		else {
+			value = ereg_replace( string: chomp( value ), pattern: "^\\s+", replace: "" );
+			compliant = policy_setting_exact_match( set_point: default, value: value );
+		}
+	}
+}
+policy_reporting( result: value, default: default, compliant: compliant, fixtext: solution, type: test_type, test: cmd, info: comment );
+policy_set_kbs( type: test_type, cmd: cmd, default: default, solution: solution, title: title, value: value, compliant: compliant );
+exit( 0 );
+

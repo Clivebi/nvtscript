@@ -1,0 +1,122 @@
+if(description){
+	script_oid( "1.3.6.1.4.1.25623.1.0.852042" );
+	script_version( "2021-06-25T11:00:33+0000" );
+	script_cve_id( "CVE-2018-14404", "CVE-2018-14567", "CVE-2018-9251" );
+	script_tag( name: "cvss_base", value: "5.0" );
+	script_tag( name: "cvss_base_vector", value: "AV:N/AC:L/Au:N/C:N/I:N/A:P" );
+	script_tag( name: "last_modification", value: "2021-06-25 11:00:33 +0000 (Fri, 25 Jun 2021)" );
+	script_tag( name: "severity_vector", value: "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H" );
+	script_tag( name: "severity_origin", value: "NVD" );
+	script_tag( name: "severity_date", value: "2020-09-10 01:15:00 +0000 (Thu, 10 Sep 2020)" );
+	script_tag( name: "creation_date", value: "2018-10-26 06:37:10 +0200 (Fri, 26 Oct 2018)" );
+	script_name( "openSUSE: Security Advisory for libxml2 (openSUSE-SU-2018:3110-1)" );
+	script_category( ACT_GATHER_INFO );
+	script_copyright( "Copyright (C) 2018 Greenbone Networks GmbH" );
+	script_family( "SuSE Local Security Checks" );
+	script_dependencies( "gather-package-list.sc" );
+	script_mandatory_keys( "ssh/login/suse", "ssh/login/rpms",  "ssh/login/release=openSUSELeap15\\.0" );
+	script_xref( name: "openSUSE-SU", value: "2018:3110-1" );
+	script_xref( name: "URL", value: "https://lists.opensuse.org/opensuse-security-announce/2018-10/msg00029.html" );
+	script_tag( name: "summary", value: "The remote host is missing an update for the 'libxml2'
+  package(s) announced via the openSUSE-SU-2018:3110-1 advisory." );
+	script_tag( name: "vuldetect", value: "Checks if a vulnerable package version is present on the target host." );
+	script_tag( name: "insight", value: "This update for libxml2 fixes the following security issues:
+
+  - CVE-2018-9251: The xz_decomp function allowed remote attackers to cause
+  a denial of service (infinite loop) via a crafted XML file that triggers
+  LZMA_MEMLIMIT_ERROR, as demonstrated by xmllint (bsc#1088279)
+
+  - CVE-2018-14567: Prevent denial of service (infinite loop) via a crafted
+  XML file that triggers LZMA_MEMLIMIT_ERROR, as demonstrated by xmllint
+  (bsc#1105166)
+
+  - CVE-2018-14404: Prevent NULL pointer dereference in the
+  xmlXPathCompOpEval() function when parsing an invalid XPath expression
+  in the XPATH_OP_AND or XPATH_OP_OR case leading to a denial of service
+  attack (bsc#1102046)
+
+  This update was imported from the SUSE:SLE-15:Update update project.
+
+  Patch Instructions:
+
+  To install this openSUSE Security Update use the SUSE recommended
+  installation methods
+  like YaST online_update or 'zypper patch'.
+
+  Alternatively you can run the command listed for your product:
+
+  - openSUSE Leap 15.0:
+
+  zypper in -t patch openSUSE-2018-1150=1" );
+	script_tag( name: "affected", value: "libxml2 on openSUSE Leap 15.0." );
+	script_tag( name: "solution", value: "Please install the updated package(s)." );
+	script_tag( name: "solution_type", value: "VendorFix" );
+	script_tag( name: "qod_type", value: "package" );
+	exit( 0 );
+}
+require("revisions-lib.inc.sc");
+require("pkg-lib-rpm.inc.sc");
+release = rpm_get_ssh_release();
+if(!release){
+	exit( 0 );
+}
+res = "";
+report = "";
+if(release == "openSUSELeap15.0"){
+	if(!isnull( res = isrpmvuln( pkg: "libxml2-2", rpm: "libxml2-2~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "libxml2-2-debuginfo", rpm: "libxml2-2-debuginfo~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "libxml2-debugsource", rpm: "libxml2-debugsource~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "libxml2-devel", rpm: "libxml2-devel~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "libxml2-tools", rpm: "libxml2-tools~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "libxml2-tools-debuginfo", rpm: "libxml2-tools-debuginfo~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "python-libxml2-python-debugsource", rpm: "python-libxml2-python-debugsource~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "python2-libxml2-python", rpm: "python2-libxml2-python~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "python2-libxml2-python-debuginfo", rpm: "python2-libxml2-python-debuginfo~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "python3-libxml2-python", rpm: "python3-libxml2-python~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "python3-libxml2-python-debuginfo", rpm: "python3-libxml2-python-debuginfo~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "libxml2-doc", rpm: "libxml2-doc~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "libxml2-2-32bit", rpm: "libxml2-2-32bit~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "libxml2-2-32bit-debuginfo", rpm: "libxml2-2-32bit-debuginfo~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if(!isnull( res = isrpmvuln( pkg: "libxml2-devel-32bit", rpm: "libxml2-devel-32bit~2.9.7~lp150.2.3.1", rls: "openSUSELeap15.0" ) )){
+		report += res;
+	}
+	if( report != "" ){
+		security_message( data: report );
+	}
+	else {
+		if(__pkg_match){
+			exit( 99 );
+		}
+	}
+	exit( 0 );
+}
+exit( 0 );
+

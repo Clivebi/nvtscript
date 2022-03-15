@@ -1,0 +1,51 @@
+if(description){
+	script_oid( "1.3.6.1.4.1.25623.1.0.113154" );
+	script_version( "2021-06-30T11:00:43+0000" );
+	script_tag( name: "last_modification", value: "2021-06-30 11:00:43 +0000 (Wed, 30 Jun 2021)" );
+	script_tag( name: "creation_date", value: "2018-04-11 13:19:33 +0200 (Wed, 11 Apr 2018)" );
+	script_tag( name: "cvss_base", value: "6.5" );
+	script_tag( name: "cvss_base_vector", value: "AV:N/AC:L/Au:S/C:P/I:P/A:P" );
+	script_tag( name: "severity_vector", value: "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H" );
+	script_tag( name: "severity_origin", value: "NVD" );
+	script_tag( name: "severity_date", value: "2018-05-16 14:27:00 +0000 (Wed, 16 May 2018)" );
+	script_tag( name: "qod_type", value: "remote_banner_unreliable" );
+	script_tag( name: "solution_type", value: "VendorFix" );
+	script_cve_id( "CVE-2017-9838", "CVE-2017-9839" );
+	script_name( "Dolibarr 5.0.3 Multiple Vulnerabilities" );
+	script_category( ACT_GATHER_INFO );
+	script_copyright( "Copyright (C) 2018 Greenbone Networks GmbH" );
+	script_family( "Web application abuses" );
+	script_dependencies( "gb_dolibarr_detect.sc" );
+	script_mandatory_keys( "dolibarr/detected" );
+	script_tag( name: "summary", value: "Dolibarr ERP / CRM is prone to multiple vulnerabilities." );
+	script_tag( name: "vuldetect", value: "The script checks if a vulnerable version is present on the target host." );
+	script_tag( name: "insight", value: "The following vulnerabilities exist:
+
+  Dolibarr ERP/CRM is affected by multiple reflected Cross-Site Scripting (XSS) vulnerabilities: index.php
+  (leftmenu parameter), core/ajax/box.php (PATH_INFO), product/stats/card.php (type parameter), holiday/list.php
+  (month_create, month_start, and month_end parameters), and don/card.php (societe, lastname, firstname, address,
+  zipcode, town, and email parameters).
+
+  Dolibarr ERP/CRM is affected by SQL injection in versions before 5.0.4 via product/stats/card.php (type
+  parameter)." );
+	script_tag( name: "affected", value: "Dolibarr through version 5.0.3" );
+	script_tag( name: "solution", value: "Update to version 5.0.4 or above." );
+	script_xref( name: "URL", value: "https://www.wizlynxgroup.com/security-research-advisories/vuln/WLX-2017-010" );
+	exit( 0 );
+}
+CPE = "cpe:/a:dolibarr:dolibarr";
+require("host_details.inc.sc");
+require("version_func.inc.sc");
+if(!port = get_app_port( cpe: CPE )){
+	exit( 0 );
+}
+if(!version = get_app_version( cpe: CPE, port: port )){
+	exit( 0 );
+}
+if(version_is_less( version: version, test_version: "5.0.4" )){
+	report = report_fixed_ver( installed_version: version, fixed_version: "5.0.4" );
+	security_message( data: report, port: port );
+	exit( 0 );
+}
+exit( 99 );
+

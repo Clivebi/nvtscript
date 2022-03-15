@@ -1,0 +1,105 @@
+if(description){
+	script_oid( "1.3.6.1.4.1.25623.1.0.103681" );
+	script_version( "2021-05-04T14:15:13+0000" );
+	script_tag( name: "last_modification", value: "2021-05-04 14:15:13 +0000 (Tue, 04 May 2021)" );
+	script_tag( name: "creation_date", value: "2013-03-18 17:03:03 +0100 (Mon, 18 Mar 2013)" );
+	script_tag( name: "cvss_base", value: "7.5" );
+	script_tag( name: "cvss_base_vector", value: "AV:N/AC:L/Au:N/C:P/I:P/A:P" );
+	script_name( "Dell Remote Access Controller Default Login (HTTP)" );
+	script_category( ACT_ATTACK );
+	script_family( "Default Accounts" );
+	script_copyright( "Copyright (C) 2013 Greenbone Networks GmbH" );
+	script_dependencies( "gb_dell_drac_detect.sc", "gb_default_credentials_options.sc" );
+	script_require_ports( "Services/www", 443 );
+	script_mandatory_keys( "dell_idrac/installed", "dell_idrac/generation" );
+	script_exclude_keys( "default_credentials/disable_default_account_checks" );
+	script_tag( name: "solution", value: "Change the password." );
+	script_tag( name: "summary", value: "The remote Dell Remote Access Controller is prone to a default
+  account authentication bypass vulnerability." );
+	script_tag( name: "impact", value: "This issue may be exploited by a remote attacker to gain access
+  to sensitive information or modify system configuration without requiring authentication." );
+	script_tag( name: "solution_type", value: "Mitigation" );
+	script_tag( name: "qod_type", value: "remote_vul" );
+	exit( 0 );
+}
+if(get_kb_item( "default_credentials/disable_default_account_checks" )){
+	exit( 0 );
+}
+require("http_func.inc.sc");
+require("host_details.inc.sc");
+cpe_list = make_list( "cpe:/a:dell:idrac4",
+	 "cpe:/a:dell:idrac5",
+	 "cpe:/a:dell:idrac6",
+	 "cpe:/a:dell:idrac7" );
+if(!infos = get_app_port_from_list( cpe_list: cpe_list )){
+	exit( 0 );
+}
+port = infos["port"];
+cpe = infos["cpe"];
+if(!get_app_location( port: port, cpe: cpe )){
+	exit( 0 );
+}
+generation = get_kb_item( "dell_idrac/generation" );
+if(!generation){
+	exit( 0 );
+}
+func check_iDRAC_default_login( version ){
+	user = "root";
+	pass = "calvin";
+	if( version == "4" ){
+		urls = make_list( "/cgi/login" );
+		posts = make_list( "user=" + user + "&hash=" + pass );
+		login_success = make_list( "top.location.replace(\"/cgi/main\")" );
+	}
+	else {
+		if( version == 5 ){
+			urls = make_list( "/cgi-bin/webcgi/login" );
+			posts = make_list( "user=" + user + "&password=" + pass );
+			login_fail = "<RC>0x140004</RC>";
+		}
+		else {
+			if( version == 6 || version == 7 ){
+				urls = make_list( "/data/login",
+					 "/Applications/dellUI/RPC/WEBSES/create.asp" );
+				posts = make_list( "user=" + user + "&password=" + pass,
+					 "WEBVAR_PASSWORD=" + pass + "&WEBVAR_USERNAME=" + user + "&WEBVAR_ISCMCLOGIN=0" );
+				login_success = make_list( "<authResult>0</authResult>",
+					 "'USERNAME' : 'root'" );
+			}
+			else {
+				return FALSE;
+			}
+		}
+	}
+	useragent = http_get_user_agent();
+	host = http_host_name( port: port );
+	for url in urls {
+		for post in posts {
+			buf = FALSE;
+			sleep( 1 );
+			len = strlen( post );
+			req = NASLString( "POST ", url, " HTTP/1.1\\r\\n", "Host: ", host, "\\r\\n", "User-Agent: ", useragent, "\\r\\n", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\\r\\n", "Accept-Language: en-us;q=0.5,en;q=0.3\\r\\n", "Accept-Encoding: identity\\r\\n", "Connection: keep-alive\\r\\n", "Content-Type: application/x-www-form-urlencoded\\r\\n", "Content-Length: ", len, "\\r\\n", "\\r\\n", post );
+			buf = http_send_recv( port: port, data: req );
+			if(!IsMatchRegexp( buf, "HTTP/1\\.. 200" )){
+				continue;
+			}
+			if(login_fail && !ContainsString( buf, login_fail )){
+				return TRUE;
+			}
+			if(login_success){
+				for ls in login_success {
+					if(ContainsString( buf, ls )){
+						return TRUE;
+					}
+				}
+			}
+		}
+	}
+}
+if(check_iDRAC_default_login( version: generation )){
+	message = "It was possible to login with username \"root\" and password \"calvin\".\n";
+	security_message( port: port, data: message );
+	exit( 0 );
+}
+exit( 99 );
+

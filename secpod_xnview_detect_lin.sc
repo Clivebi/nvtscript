@@ -1,0 +1,45 @@
+if(description){
+	script_oid( "1.3.6.1.4.1.25623.1.0.900753" );
+	script_tag( name: "cvss_base_vector", value: "AV:N/AC:L/Au:N/C:N/I:N/A:N" );
+	script_version( "2021-09-01T14:04:04+0000" );
+	script_tag( name: "last_modification", value: "2021-09-01 14:04:04 +0000 (Wed, 01 Sep 2021)" );
+	script_tag( name: "creation_date", value: "2010-03-30 16:15:33 +0200 (Tue, 30 Mar 2010)" );
+	script_name( "XnView Version Detection (Linux)" );
+	script_tag( name: "cvss_base", value: "0.0" );
+	script_category( ACT_GATHER_INFO );
+	script_tag( name: "qod_type", value: "executable_version" );
+	script_copyright( "Copyright (C) 2010 Greenbone Networks GmbH" );
+	script_family( "Product detection" );
+	script_dependencies( "gather-package-list.sc" );
+	script_mandatory_keys( "login/SSH/success" );
+	script_exclude_keys( "ssh/no_linux_shell" );
+	script_tag( name: "summary", value: "This script detects the installed version of XnView." );
+	exit( 0 );
+}
+require("ssh_func.inc.sc");
+require("cpe.inc.sc");
+require("host_details.inc.sc");
+SCRIPT_DESC = "XnView Version Detection (Linux)";
+sock = ssh_login_or_reuse_connection();
+if(!sock){
+	exit( 0 );
+}
+paths = ssh_find_bin( prog_name: "xnview", sock: sock );
+for xnviewbin in paths {
+	xnviewbin = chomp( xnviewbin );
+	if(!xnviewbin){
+		continue;
+	}
+	xnviewVer = ssh_get_bin_version( full_prog_name: xnviewbin, sock: sock, version_argv: "-help", ver_pattern: "XnView v([0-9.]+)" );
+	if(xnviewVer[1] != NULL){
+		set_kb_item( name: "XnView/Linux/Ver", value: xnviewVer[1] );
+		log_message( data: "XnView version " + xnviewVer[1] + " running at location " + xnviewbin + " was detected on the host" );
+		cpe = build_cpe( value: xnviewVer[1], exp: "^([0-9.]+)", base: "cpe:/a:xnview:xnview:" );
+		if(!isnull( cpe )){
+			register_host_detail( name: "App", value: cpe, desc: SCRIPT_DESC );
+		}
+		exit( 0 );
+	}
+}
+ssh_close_connection();
+
